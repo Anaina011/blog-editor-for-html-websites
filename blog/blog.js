@@ -8,7 +8,7 @@ document.getElementById("displayUserName").innerText = username;
 
 const toolbarOptions = [
     ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
-     ['blockquote', 'code-block'],
+    // ['blockquote', 'code-block'],
     ['link', 'image', 'video'],
 
     [{ 'header': 1 }, { 'header': 2 }],               // custom button values
@@ -32,6 +32,9 @@ const quill = new Quill('#bed_content_editor', {
     },
     theme: 'snow',
 });
+
+
+
 
 // ************************************************************************************
 // script to add hash tags

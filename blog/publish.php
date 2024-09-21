@@ -88,6 +88,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $slug = htmlspecialchars($_POST['slug']);
     $metaDescription = htmlspecialchars($_POST['metaDescription']);
     $canonicalUrl = isset($_POST['canonicalUrl']) && !empty($_POST['canonicalUrl']) ? htmlspecialchars($_POST['canonicalUrl']) : $rootPath . $slug ;
+    $headScripts = htmlspecialchars($_POST['headSrcipts']);
+    $bodyScripts = htmlspecialchars($_POST['bodySrcipts']);
     $tags = $_POST['tags'];
     $visibility = $_POST['visibility'];
     $category = htmlspecialchars($_POST['category']); // New category field
@@ -290,7 +292,9 @@ $robotsMeta = isset($_POST['robotsMetaInput']) ? $_POST['robotsMetaInput'] : 'in
         "geoPlacename" => $geoPlacename,
         "geoPosition" => $geoPosition,
         "ICBM" => $ICBM,
-        "canonicalUrl" => $canonicalUrl  // Save canonical URL in timestamp.json
+        "canonicalUrl" => $canonicalUrl, // Save canonical URL in timestamp.json
+        "headScripts" => $headScripts,   // New key for head scripts
+        "bodyScripts" => $bodyScripts    // New key for body scripts
     ];
 
     // Write the updated data back to timestamp.json
@@ -355,6 +359,7 @@ $robotsMeta = isset($_POST['robotsMetaInput']) ? $_POST['robotsMetaInput'] : 'in
         <meta name="twitter:data1" content="$publisherName" />
         <meta name="twitter:label2" content="Est. reading time" />
         <meta name="twitter:data2" content="4 minutes" />
+        $headScripts
         <script type="application/ld+json">
         {
             "@context": "https://schema.org",
@@ -756,6 +761,7 @@ $robotsMeta = isset($_POST['robotsMetaInput']) ? $_POST['robotsMetaInput'] : 'in
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
         integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    $bodyScripts
     </body>
     </html>
 HTML;

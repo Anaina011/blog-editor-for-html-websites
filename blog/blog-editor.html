@@ -48,21 +48,39 @@
                 <div class="row">
                     <div class="col-xl-10 col-lg-10 col-md-10 col-sm-12 col-12">
                         <section class="bed_editor_area">
+                            <label for="">Title :</label>
                             <input type="text" placeholder="Add Title" id="postTitle" name="title">
                             <!-- Create the editor container -->
                             <div class="bed_content_editor" id="bed_content_editor">
                                 <br> <br>
                             </div>
+                            <br>
                             <input type="hidden" id="content" name="content">
+                            <label for="">Focus Keyphrase :</label>
                             <input type="text" placeholder="Add the Focus Keyphrase" id="focusKeyphrase"
                                 name="focusKeyphrase">
+                            <label for="">SEO Title :</label>
                             <input type="text" placeholder="Add SEO Title" id="seoTitle" name="seoTitle">
+                            <label for="">Slug :</label>
                             <input type="text" placeholder="Add Slug" id="slug" name="slug">
+                            <label for="">Meta Description :</label>
                             <input type="text" placeholder="Add Meta Description" id="metaDescription"
                                 name="metaDescription">
+                            <label for="">Canonical URL :</label>
                             <input type="text" placeholder="Add Canonical URL" id="canonicalUrl" name="canonicalUrl">
                             <input type="hidden" id="tags" name="tags">
                             <input type="hidden" id="isEditing" name="isEditing" value="">
+                            <br>
+                            <br>
+                            <h6>Advanced options</h6>
+                            <br>
+                            <label for="">Scripts in head tag :</label>
+                            <br>
+                            <textarea rows="5" name="headSrcipts" id="headSrcipts" placeholder="Paste the code snippets to be placed inside the <head> tag"></textarea>
+                            <br>
+                            <label for="">Scripts in body tag :</label>
+                            <br>
+                            <textarea rows="5" name="bodySrcipts" id="bodySrcipts" placeholder="Paste the code snippets to be placed inside the <body> tag"></textarea>
                         </section>
                     </div>
 
@@ -143,11 +161,32 @@
                             <br><br>
                             <button type="button" id="publish">Publish</button>
                         </div>
+
+                        <!-- Modal for alt text -->
+                        <!-- Modal for alt text -->
+                        <div id="altTextModal" style="display:none;">
+                            <label for="altTextInput">Enter Alt Text:</label>
+                            <input type="text" id="altTextInput" />
+                            <button type="button" id="saveAltTextButton">Save Alt Text</button>
+                            <!-- Changed to type="button" -->
+                        </div>
+
                     </div>
                 </div>
             </form>
         </div>
     </div>
+
+    <style>
+        #altTextModal {
+            position: fixed;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            z-index: 1000;
+            display: none;
+        }
+    </style>
 
     <script>
         // When the page loads, populate the hidden input field with the current image src
@@ -241,10 +280,10 @@
             var lat = document.getElementById('geoLatInput').value.trim();
             var lon = document.getElementById('geoLonInput').value.trim();
 
-            if (!region || !placename || !lat || !lon) {
-                alert('Please fill in all the location fields.');
-                return;
-            }
+            // if (!region || !placename || !lat || !lon) {
+            //     alert('Please fill in all the location fields.');
+            //     return;
+            // }
 
             document.getElementById('geoRegion').value = region;
             document.getElementById('geoPlacename').value = placename;
@@ -311,6 +350,8 @@
                 document.getElementById('metaDescription').value = postData.metaDescription;
                 document.getElementById('tags').value = postData.tags;
                 document.getElementById('postTitle').value = postData.title;
+                document.getElementById('headSrcipts').value = postData.headScripts || ''; // Load head scripts
+                document.getElementById('bodySrcipts').value = postData.bodyScripts || ''; // Load body scripts
 
                 // Populate the featured image
                 document.getElementById('featured-image').src = postData.featuredImage;
@@ -427,7 +468,7 @@
             document.getElementById('slug').value = slug;
 
             // Auto-generate the canonical URL
-            let canonicalUrl = 'https://incshipping.com/' + slug;
+            let canonicalUrl = 'https://incshipping.com/blog/' + slug;
 
             // Set the canonical URL value
             document.getElementById('canonicalUrl').value = canonicalUrl;
@@ -440,6 +481,93 @@
             }
         });
     </script>
+    <script>
+        const ImageBlot = Quill.import('formats/image');
+
+        class CustomImageBlot extends ImageBlot {
+            static create(value) {
+                let node = super.create(value.url || value);  // Ensure the value can handle both strings and objects
+                node.setAttribute('src', value.url || value); // Ensure the 'src' attribute is set correctly
+
+                // Set alt text if provided
+                if (value.alt) {
+                    node.setAttribute('alt', value.alt);
+                }
+                return node;
+            }
+
+            static value(domNode) {
+                return {
+                    url: domNode.getAttribute('src'),
+                    alt: domNode.getAttribute('alt'),
+                };
+            }
+
+            static formats(domNode) {
+                let formats = super.formats(domNode);
+                formats.alt = domNode.getAttribute('alt') || '';
+                return formats;
+            }
+
+            format(name, value) {
+                if (name === 'alt') {
+                    if (value) {
+                        this.domNode.setAttribute('alt', value);
+                    } else {
+                        this.domNode.removeAttribute('alt');
+                    }
+                } else {
+                    super.format(name, value);
+                }
+            }
+        }
+
+        Quill.register(CustomImageBlot, true);
+    </script>
+
+    <script>
+        // When an image in the editor is clicked, show the modal to add alt text
+        document.querySelector('.ql-editor').addEventListener('click', function (e) {
+            if (e.target.tagName === 'IMG') {
+                const img = e.target;
+                const altTextModal = document.getElementById('altTextModal');
+                const altTextInput = document.getElementById('altTextInput');
+                const saveAltTextButton = document.getElementById('saveAltTextButton');
+
+                // Pre-fill the input with the current alt text
+                altTextInput.value = img.getAttribute('alt') || '';
+
+                // Show the modal near the image
+                altTextModal.style.display = 'block';
+                altTextModal.style.top = e.clientY + 'px';
+                altTextModal.style.left = e.clientX + 'px';
+
+                // Prevent the default action when the "Save Alt Text" button is clicked
+                saveAltTextButton.onclick = function (e) {
+                    e.preventDefault(); // Prevent any default form submission or page reload
+
+                    const altText = altTextInput.value;
+                    // Update the image alt text
+                    img.setAttribute('alt', altText);
+
+                    // Hide the modal
+                    altTextModal.style.display = 'none';
+                };
+            }
+        });
+
+        // Hide the modal if clicked outside
+        document.addEventListener('click', function (e) {
+            const altTextModal = document.getElementById('altTextModal');
+            if (!altTextModal.contains(e.target) && !e.target.closest('.ql-editor img')) {
+                altTextModal.style.display = 'none';
+            }
+        });
+
+
+    </script>
+
+
 </body>
 
 </html>
