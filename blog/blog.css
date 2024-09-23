@@ -413,3 +413,7 @@ li[data-list="unchecked"]::marker {
 .recentpost_card{
     margin-bottom: 20px;
 }
+
+* {
+    /* border: 1px solid red; */
+}

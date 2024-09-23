@@ -16,7 +16,7 @@
 </head>
 
 <body>
-    <header class="header"> 
+    <header class="header">
         <div style="margin: 0;" class="row">
             <div style="padding: 0;" class="col-xl-3 col-lg-3 col-md-3 col-sm-6 col-5 nav_logo_col">
                 <img onclick="window.location.href='index.html'" src="img/inc_nav_logo.webp"
@@ -276,7 +276,7 @@
                     postCard.classList.add('col-xl-4', 'col-lg-4', 'col-md-4', 'col-sm-6', 'col-12', 'hashtagpostcontainer');
                     postCard.innerHTML = `
                     <div class="hashtagpostcard">
-                        <img src="https://incshipping.com/blog/${post.featuredImage}" alt="Featured Image">
+                        <img src="${post.featuredImage}" alt="Featured Image">
                         <h5>${post.title}</h5>
                         <p>${post.firstLine}</p>
                         <a href="${post.url}">Read more</a>

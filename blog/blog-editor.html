@@ -81,7 +81,12 @@
                             <label for="">Scripts in body tag :</label>
                             <br>
                             <textarea rows="5" name="bodySrcipts" id="bodySrcipts" placeholder="Paste the code snippets to be placed inside the <body> tag"></textarea>
-                        </section>
+                            <br>
+                            <label for="">Structured data scripts :</label>
+                            <br>
+                            <textarea rows="5" name="structuredData" id="structuredData" placeholder="Paste the structured data code snippets to be placed inside the <head> tag"></textarea>
+    
+                            </section>
                     </div>
 
                     <div class="col-xl-2 col-lg-2 col-md-2 col-sm-12 col-12">
@@ -352,6 +357,7 @@
                 document.getElementById('postTitle').value = postData.title;
                 document.getElementById('headSrcipts').value = postData.headScripts || ''; // Load head scripts
                 document.getElementById('bodySrcipts').value = postData.bodyScripts || ''; // Load body scripts
+                document.getElementById('structuredData').value = postData.structuredData || ''; // Load structured Data
 
                 // Populate the featured image
                 document.getElementById('featured-image').src = postData.featuredImage;

@@ -88,8 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $slug = htmlspecialchars($_POST['slug']);
     $metaDescription = htmlspecialchars($_POST['metaDescription']);
     $canonicalUrl = isset($_POST['canonicalUrl']) && !empty($_POST['canonicalUrl']) ? htmlspecialchars($_POST['canonicalUrl']) : $rootPath . $slug ;
-    $headScripts = htmlspecialchars($_POST['headSrcipts']);
-    $bodyScripts = htmlspecialchars($_POST['bodySrcipts']);
+    $headScripts = $_POST['headSrcipts'];
+    $bodyScripts = $_POST['bodySrcipts'];
+    $structuredDataInput = $_POST['structuredData'];
     $tags = $_POST['tags'];
     $visibility = $_POST['visibility'];
     $category = htmlspecialchars($_POST['category']); // New category field
@@ -186,7 +187,151 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $termsAndConditionUrl = $domainName . $termsAndCondition;
     $siteMapUrl = $domainName . $siteMap;
     $categoryLinks = '<a href="categories.html?category=' . urlencode($category) . '">' . htmlspecialchars($category) . '</a>';
+    $structuredDataInput = isset($_POST['structuredData']) ? $_POST['structuredData'] : ''; // Check if the field is set
+    if (!empty($structuredDataInput)) {
+        // If the structuredDataInput is not empty, use the user's input
+        $structuredData = $structuredDataInput;
+    } else {
+        $structuredData = '
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@graph": [
+                    {
+                        "@type": "$openGraphType",
+                        "@id": "$canonicalUrl/#$openGraphType",
+                        "isPartOf": {
+                            "@id": "$canonicalUrl/"
+                        },
+                        "author": {
+                            "name": "$publisherName",
+                            "@id": "$blogHomeUrl"
+                        },
+                        "headline": "$title",
+                        "datePublished": "$CurrentDateTime",
+                        "mainEntityOfPage": {
+                            "@id": "$canonicalUrl/"
+                        },
+                        "wordCount": 365,
+                        "commentCount": 0,
+                        "publisher": {
+                            "@id": "$blogHomeUrl"
+                        },
+                        "image": {
+                            "@id": "$canonicalUrl/#primaryimage"
+                        },
+                        "thumbnailUrl": "$featuredImageUrl",
+                        "keywords": [
+                            $formattedTagsString
+                        ],
+                        "articleSection": [
+                            "Blog"
+                        ],
+                        "inLanguage": "$language"
+                    },
+                    {
+                        "@type": "WebPage",
+                        "@id": "$canonicalUrl/",
+                        "url": "$canonicalUrl/",
+                        "name": "$seoTitle",
+                        "isPartOf": {
+                            "@id": "$blogHomeUrl"
+                        },
+                        "primaryImageOfPage": {
+                            "@id": "$canonicalUrl/#primaryimage"
+                        },
+                        "image": {
+                            "@id": "$canonicalUrl/#primaryimage"
+                        },
+                        "thumbnailUrl": "$featuredImageUrl",
+                        "datePublished": "$CurrentDateTime",
+                        "description": "$metaDescription.",
+                        "breadcrumb": {
+                            "@id": "$canonicalUrl/#breadcrumb"
+                        },
+                        "inLanguage": "$language",
+                        "potentialAction": [
+                            {
+                                "@type": "ReadAction",
+                                "target": [
+                                    "$canonicalUrl/"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "@type": "ImageObject",
+                        "inLanguage": "$language",
+                        "@id": "$canonicalUrl/#primaryimage",
+                        "url": "$featuredImageUrl",
+                        "contentUrl": "$featuredImageUrl",
+                        "caption": "$title"
+                    },
+                    {
+                        "@type": "BreadcrumbList",
+                        "@id": "$canonicalUrl/#breadcrumb",
+                        "itemListElement": [
+                            {
+                                "@type": "ListItem",
+                                "position": 1,
+                                "name": "Home",
+                                "item": "$blogHomeUrl"
+                            },
+                            {
+                                "@type": "ListItem",
+                                "position": 2,
+                                "name": "$title"
+                            }
+                        ]
+                    },
+                    {
+                        "@type": "WebSite",
+                        "@id": "$blogHomeUrl/#website",
+                        "url": "$blogHomeUrl/",
+                        "name": "$publisherName",
+                        "description": "$publisherTagline",
+                        "publisher": {
+                            "@id": "$blogHomeUrl/#organization"
+                        },
+                        "inLanguage": "$language"
+                    },
+                    {
+                        "@type": "Organization",
+                        "@id": "$blogHomeUrl/#organization",
+                        "name": "$publisherName",
+                        "alternateName": "$publisherName",
+                        "url": "$blogHomeUrl",
+                        "logo": {
+                            "@type": "ImageObject",
+                            "inLanguage": "$language",
+                            "@id": "$blogHomeUrl",
+                            "url": "$logoImageUrl",
+                            "contentUrl": "$logoImageUrl",
+                            "caption": "$publisherName"
+                        },
+                        "image": {
+                            "@id": "$blogHomeUrl"
+                        },
+                        "sameAs": [
+                            "$facebookProfileLink",
+                            "$threadsProfileLink",
+                            "$instagramProfileLink",
+                            "$linkedinProfileLink"
+                        ]
+                    },
+                    {
+                        "@type": "Person",
+                        "@id": "$blogHomeUrl",
+                        "name": "$publisherName"
+                    }
+                ]
+            }
+            </script>
+        ';
+    }
 
+
+    
     // Read the existing tags.json file
     $tagsFilePath = __DIR__ . "/tags.json";
     $tagsData = file_exists($tagsFilePath) ? json_decode(file_get_contents($tagsFilePath), true) : ["hashtags" => []];
@@ -294,7 +439,8 @@ $robotsMeta = isset($_POST['robotsMetaInput']) ? $_POST['robotsMetaInput'] : 'in
         "ICBM" => $ICBM,
         "canonicalUrl" => $canonicalUrl, // Save canonical URL in timestamp.json
         "headScripts" => $headScripts,   // New key for head scripts
-        "bodyScripts" => $bodyScripts    // New key for body scripts
+        "bodyScripts" => $bodyScripts,    // New key for body scripts
+        "structuredData" => $structuredData
     ];
 
     // Write the updated data back to timestamp.json
@@ -359,141 +505,9 @@ $robotsMeta = isset($_POST['robotsMetaInput']) ? $_POST['robotsMetaInput'] : 'in
         <meta name="twitter:data1" content="$publisherName" />
         <meta name="twitter:label2" content="Est. reading time" />
         <meta name="twitter:data2" content="4 minutes" />
+        $structuredData
         $headScripts
-        <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@graph": [
-                {
-                    "@type": "$openGraphType",
-                    "@id": "$canonicalUrl/#$openGraphType",
-                    "isPartOf": {
-                        "@id": "$canonicalUrl/"
-                    },
-                    "author": {
-                        "name": "$publisherName",
-                        "@id": "$blogHomeUrl"
-                    },
-                    "headline": "$title",
-                    "datePublished": "$CurrentDateTime",
-                    "mainEntityOfPage": {
-                        "@id": "$canonicalUrl/"
-                    },
-                    "wordCount": 365,
-                    "commentCount": 0,
-                    "publisher": {
-                        "@id": "$blogHomeUrl"
-                    },
-                    "image": {
-                        "@id": "$canonicalUrl/#primaryimage"
-                    },
-                    "thumbnailUrl": "$featuredImageUrl",
-                    "keywords": [
-                        $formattedTagsString
-                    ],
-                    "articleSection": [
-                        "Blog"
-                    ],
-                    "inLanguage": "$language"
-                },
-                {
-                    "@type": "WebPage",
-                    "@id": "$canonicalUrl/",
-                    "url": "$canonicalUrl/",
-                    "name": "$seoTitle",
-                    "isPartOf": {
-                        "@id": "$blogHomeUrl"
-                    },
-                    "primaryImageOfPage": {
-                        "@id": "$canonicalUrl/#primaryimage"
-                    },
-                    "image": {
-                        "@id": "$canonicalUrl/#primaryimage"
-                    },
-                    "thumbnailUrl": "$featuredImageUrl",
-                    "datePublished": "$CurrentDateTime",
-                    "description": "$metaDescription.",
-                    "breadcrumb": {
-                        "@id": "$canonicalUrl/#breadcrumb"
-                    },
-                    "inLanguage": "$language",
-                    "potentialAction": [
-                        {
-                            "@type": "ReadAction",
-                            "target": [
-                                "$canonicalUrl/"
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "@type": "ImageObject",
-                    "inLanguage": "$language",
-                    "@id": "$canonicalUrl/#primaryimage",
-                    "url": "$featuredImageUrl",
-                    "contentUrl": "$featuredImageUrl",
-                    "caption": "$title"
-                },
-                {
-                    "@type": "BreadcrumbList",
-                    "@id": "$canonicalUrl/#breadcrumb",
-                    "itemListElement": [
-                        {
-                            "@type": "ListItem",
-                            "position": 1,
-                            "name": "Home",
-                            "item": "$blogHomeUrl"
-                        },
-                        {
-                            "@type": "ListItem",
-                            "position": 2,
-                            "name": "$title"
-                        }
-                    ]
-                },
-                {
-                    "@type": "WebSite",
-                    "@id": "$blogHomeUrl/#website",
-                    "url": "$blogHomeUrl/",
-                    "name": "$publisherName",
-                    "description": "$publisherTagline",
-                    "publisher": {
-                        "@id": "$blogHomeUrl/#organization"
-                    },
-                    "inLanguage": "$language"
-                },
-                {
-                    "@type": "Organization",
-                    "@id": "$blogHomeUrl/#organization",
-                    "name": "$publisherName",
-                    "alternateName": "$publisherName",
-                    "url": "$blogHomeUrl",
-                    "logo": {
-                        "@type": "ImageObject",
-                        "inLanguage": "$language",
-                        "@id": "$blogHomeUrl",
-                        "url": "$logoImageUrl",
-                        "contentUrl": "$logoImageUrl",
-                        "caption": "$publisherName"
-                    },
-                    "image": {
-                        "@id": "$blogHomeUrl"
-                    },
-                    "sameAs": [
-                        "$facebookProfileLink",
-                        "$threadsProfileLink",
-                        "$instagramProfileLink",
-                        "$linkedinProfileLink"
-                    ]
-                },
-                {
-                    "@type": "Person",
-                    "@id": "$blogHomeUrl",
-                    "name": "$publisherName"
-                }
-            ]
-        }
-        </script>
+        
         <link rel="stylesheet" href="blog.css"/>
         <link rel="stylesheet" href="stylesheet.css"/>
         <!-- bootstrap -->
