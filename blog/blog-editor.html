@@ -106,6 +106,10 @@
                             <button type="button" id="remove-button">Remove featured image</button>
                         </div>
 
+<!-- Add this near the publish button or wherever appropriate -->
+<label for="timestampInput">Set Publish Date (optional):</label>
+<input type="datetime-local" id="timestampInput" name="timestamp">
+
                         <div class="tags-card">
                             <p>Tags</p>
                             <div class="input-group">
@@ -398,7 +402,8 @@
                     tagElement.appendChild(removeButton);
                     tagsContainer.appendChild(tagElement);
                 });
-
+   
+                  
                 // Populate category
 
                 // if (postData.category) {
@@ -485,6 +490,36 @@
             // Proceed with the rest of the form submission logic
             document.getElementById('blogForm').submit();
         });
+
+        document.getElementById('publish').addEventListener('click', function () {
+    // Ensure the content from the editor is submitted
+    document.getElementById('content').value = quill.root.innerHTML;
+
+    // Submit the form
+    document.getElementById('blogForm').submit();
+});
+
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+    const editPostData = localStorage.getItem('editPostData');
+    if (editPostData) {
+        const postData = JSON.parse(editPostData);
+
+        // Populate the timestamp field if editing
+        if (postData.timestamp) {
+            const postDate = new Date(postData.timestamp);
+            document.getElementById('timestampInput').value = postDate.toISOString().slice(0, 16);
+        }
+    } else {
+        // If creating a new post, default to the current date and time
+        const now = new Date().toISOString().slice(0, 16);
+        document.getElementById('timestampInput').value = now;
+    }
+});
+
+
+
     </script>
     <script>
         document.getElementById('postTitle').addEventListener('input', function () {
