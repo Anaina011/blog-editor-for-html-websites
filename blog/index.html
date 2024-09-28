@@ -287,7 +287,6 @@
 
             });
         }
-
         document.addEventListener('DOMContentLoaded', function () {
             fetch('timestamp.json')
                 .then(response => response.json())
@@ -295,6 +294,15 @@
                 .catch(error => console.error('Error loading blog data:', error));
         });
     </script>
+<style>
+.hashtagpostcard{
+        height: 400px;
+    }
+
+    .hashtagpostcard img {
+        height: 190px;
+    }
+</style>
 </body>
 
 </html>
