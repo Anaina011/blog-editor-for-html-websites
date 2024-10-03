@@ -26,15 +26,6 @@
                 "category": "Blog",
                 "visibility": "public"
             }
-        },
-        "tt": {
-            "rgtr.html": {
-                "title": "rgtr",
-                "featuredImage": "https:\/\/incshipping.com\/blog\/uploads\/program 3.png",
-                "url": "https:\/\/incshipping.com\/blog\/rgtr",
-                "category": "Blog",
-                "visibility": "public"
-            }
         }
     }
 }
