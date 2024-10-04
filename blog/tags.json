@@ -18,11 +18,20 @@
                 "visibility": "public"
             }
         },
-        "test": {
-            "hfghgf.html": {
-                "title": "hfghgf",
-                "featuredImage": "https:\/\/incshipping.com\/blog\/uploads\/Course 5.jpg",
-                "url": "https:\/\/incshipping.com\/blog\/hfghgf",
+        "zfdsf": {
+            "zfdsf.html": {
+                "title": "zfdsf",
+                "featuredImage": "https:\/\/incshipping.com\/blog\/uploads\/program 3.png",
+                "url": "https:\/\/incshipping.com\/blog\/zfdsf",
+                "category": "Blog",
+                "visibility": "public"
+            }
+        },
+        "dgdfg": {
+            "dgdfg.html": {
+                "title": "dgdfg",
+                "featuredImage": "https:\/\/incshipping.com\/blog\/uploads\/p2.png",
+                "url": "https:\/\/incshipping.com\/blog\/dgdfg",
                 "category": "Blog",
                 "visibility": "public"
             }
