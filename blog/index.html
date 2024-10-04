@@ -235,6 +235,7 @@
                 </p>
             </div>
         </div>
+        
     </footer>
 
 
@@ -250,6 +251,24 @@
         </a>
         <p class="text_icon">Talk to us?</p>
     </div>
+
+
+
+
+    <style>
+        .hashtagpostcard {
+            height: 400px;
+        }
+
+        .hashtagpostcard img {
+            height: 190px;
+        }
+    </style>
+
+
+
+
+
     <script src="../js/main.js"></script>
     <!-- bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -287,6 +306,7 @@
 
             });
         }
+
         document.addEventListener('DOMContentLoaded', function () {
             fetch('timestamp.json')
                 .then(response => response.json())
@@ -294,15 +314,6 @@
                 .catch(error => console.error('Error loading blog data:', error));
         });
     </script>
-    <style>
-        .hashtagpostcard {
-            height: 400px;
-        }
-
-        .hashtagpostcard img {
-            height: 190px;
-        }
-    </style>
 </body>
 
 </html>

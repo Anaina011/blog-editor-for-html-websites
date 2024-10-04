@@ -67,7 +67,8 @@
                             <input type="text" placeholder="Add Meta Description" id="metaDescription"
                                 name="metaDescription">
                             <label for="">Canonical URL :</label>
-                            <input type="text" placeholder="Add Canonical URL" id="canonicalUrl" name="canonicalUrl">
+                            <input readonly type="text" placeholder="Add Canonical URL" id="canonicalUrl"
+                                name="canonicalUrl">
                             <input type="hidden" id="tags" name="tags">
                             <input type="hidden" id="isEditing" name="isEditing" value="">
                             <br>
@@ -189,14 +190,17 @@
                             <button type="button" id="publish">Publish</button>
                         </div>
 
-                        <!-- Modal for alt text -->
-                        <!-- Modal for alt text -->
-                        <div id="altTextModal" style="display:none;">
+                        <!-- Modal for alt and title text -->
+                        <div id="altTitleModal" style="display:none;">
                             <label for="altTextInput">Enter Alt Text:</label>
                             <input type="text" id="altTextInput" />
-                            <button type="button" id="saveAltTextButton">Save Alt Text</button>
-                            <!-- Changed to type="button" -->
+
+                            <label for="titleTextInput">Enter Title Text:</label>
+                            <input type="text" id="titleTextInput" />
+
+                            <button type="button" id="saveAltTitleButton">Save</button>
                         </div>
+
 
                     </div>
                 </div>
@@ -206,6 +210,15 @@
 
     <style>
         #altTextModal {
+            position: fixed;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 20px;
+            z-index: 1000;
+            display: none;
+        }
+
+        #altTitleModal {
             position: fixed;
             background-color: white;
             border: 1px solid #ccc;
@@ -271,80 +284,117 @@
     </script>
 
     <script>
+        // Function to calculate the size of a string in bytes
+        function calculateSizeInBytes(content) {
+            // Convert content to a Blob to calculate its size in bytes
+            const blob = new Blob([content], { type: 'text/plain' });
+            return blob.size;
+        }
+
+        // Set the content limit in bytes (4 MB = 4,194,304 bytes)
+        const MAX_SIZE = 4194304; // 4 MB
+
         document.getElementById('publish').addEventListener('click', function () {
-            var featuredImage = document.getElementById('featured-image');
-            if (featuredImage) {
-                document.getElementById('featured-image-url').value = featuredImage.src;
-            }
-            // Get the content from the editor
-            document.getElementById('content').value = quill.root.innerHTML;
+            // Get the content from the Quill editor
+            const quillContent = quill.root.innerHTML;
 
-            // Get the selected robots meta value
-            const robotsMeta = document.getElementById('robotsMeta').value;
+            // Calculate the size of the content
+            const contentSize = calculateSizeInBytes(quillContent);
 
-            // Set the hidden input value to the selected robots meta value
-            document.getElementById('robotsMetaInput').value = robotsMeta;
-
-            // Submit the form
-            document.getElementById('blogForm').submit();
-
-            // Collect tags
-            const tagsContainer = document.getElementById('tags-container');
-            const tags = Array.from(tagsContainer.children).map(tagElement => {
-                // Ensure only one `#` is present
-                let tag = tagElement.firstChild.textContent;
-                tag = tag.replace(/^#+/, ''); // Remove all leading #
-                tag = tag.trim(); // Add a single #
-                return tag;
-            });
-            document.getElementById('tags').value = tags.join(',');
-
-
-            // Get geo-location values and fill in hidden inputs
-            var region = document.getElementById('geoRegionInput').value.trim();
-            var placename = document.getElementById('geoPlacenameInput').value.trim();
-            var lat = document.getElementById('geoLatInput').value.trim();
-            var lon = document.getElementById('geoLonInput').value.trim();
-
-            // if (!region || !placename || !lat || !lon) {
-            //     alert('Please fill in all the location fields.');
-            //     return;
-            // }
-
-            document.getElementById('geoRegion').value = region;
-            document.getElementById('geoPlacename').value = placename;
-            document.getElementById('geoPosition').value = lat + ';' + lon;
-            document.getElementById('ICBM').value = lat + ', ' + lon;
-
-
-            // Check if the post is new or being edited
-            const isEditing = localStorage.getItem('editPostData') !== null;
-
-            if (!isEditing) {  // Slug check only for new posts
-                // If creating a new post, check if a file with the same slug already exists
-                const slug = document.getElementById('slug').value.trim();
-                if (slug) {
-                    fetch('check_slug.php?slug=' + encodeURIComponent(slug))
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.exists) {
-                                alert('A file with this slug name already exists. Please choose a different slug.');
-                            } else {
-                                // Proceed with publishing if no file with the same slug exists
-                                document.getElementById('blogForm').submit();
-                            }
-                        })
-                        .catch(error => console.error('Error checking slug:', error));
-                } else {
-                    alert('Slug cannot be empty.');
-                }
+            if (contentSize > MAX_SIZE) {
+                // If content exceeds the limit, show an error message
+                alert('The content size exceeds the 4 MB limit. Please reduce the content size.');
             } else {
-                // For existing posts (editing), skip the slug check and submit the form directly
-                document.getElementById('blogForm').submit();
-                localStorage.removeItem('editPostData');
+                // Proceed with the form submission
+
+                document.getElementById('publish').addEventListener('click', function () {
+                    var featuredImage = document.getElementById('featured-image');
+                    if (featuredImage) {
+                        document.getElementById('featured-image-url').value = featuredImage.src;
+                    }
+                    // Get the content from the editor
+                    document.getElementById('content').value = quill.root.innerHTML;
+
+                    // Get the selected robots meta value
+                    const robotsMeta = document.getElementById('robotsMeta').value;
+
+                    // Set the hidden input value to the selected robots meta value
+                    document.getElementById('robotsMetaInput').value = robotsMeta;
+
+                    // Submit the form
+                    document.getElementById('blogForm').submit();
+
+                    // Collect tags
+                    const tagsContainer = document.getElementById('tags-container');
+                    const tags = Array.from(tagsContainer.children).map(tagElement => {
+                        // Ensure only one `#` is present
+                        let tag = tagElement.firstChild.textContent;
+                        tag = tag.replace(/^#+/, ''); // Remove all leading #
+                        tag = tag.trim(); // Add a single #
+                        return tag;
+                    });
+                    document.getElementById('tags').value = tags.join(',');
+
+
+                    // Get geo-location values and fill in hidden inputs
+                    var region = document.getElementById('geoRegionInput').value.trim();
+                    var placename = document.getElementById('geoPlacenameInput').value.trim();
+                    var lat = document.getElementById('geoLatInput').value.trim();
+                    var lon = document.getElementById('geoLonInput').value.trim();
+
+                    // if (!region || !placename || !lat || !lon) {
+                    //     alert('Please fill in all the location fields.');
+                    //     return;
+                    // }
+
+                    document.getElementById('geoRegion').value = region;
+                    document.getElementById('geoPlacename').value = placename;
+                    document.getElementById('geoPosition').value = lat + ';' + lon;
+                    document.getElementById('ICBM').value = lat + ', ' + lon;
+
+
+                    // Check if the post is new or being edited
+                    const isEditing = localStorage.getItem('editPostData') !== null;
+
+                    if (!isEditing) {  // Slug check only for new posts
+                        // If creating a new post, check if a file with the same slug already exists
+                        const slug = document.getElementById('slug').value.trim();
+                        if (slug) {
+                            fetch('check_slug.php?slug=' + encodeURIComponent(slug))
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.exists) {
+                                        alert('A file with this slug name already exists. Please choose a different slug.');
+                                    } else {
+                                        // Proceed with publishing if no file with the same slug exists
+                                        document.getElementById('blogForm').submit();
+                                    }
+                                })
+                                .catch(error => console.error('Error checking slug:', error));
+                        } else {
+                            alert('Slug cannot be empty.');
+                        }
+                    } else {
+                        // For existing posts (editing), skip the slug check and submit the form directly
+                        document.getElementById('blogForm').submit();
+                        localStorage.removeItem('editPostData');
+                    }
+                });
+
+
+                // When the publish button is clicked, make sure the selected robots meta is saved
+                document.getElementById('publish').addEventListener('click', function () {
+                    const robotsMeta = document.getElementById('robotsMeta').value;
+                    document.getElementById('robotsMetaInput').value = robotsMeta;
+
+                    // Proceed with the rest of the form submission logic
+                    document.getElementById('blogForm').submit();
+                });
             }
         });
+    </script>
 
+    <script>
         // Load the post data for editing
         document.addEventListener('DOMContentLoaded', function () {
             const editPostData = localStorage.getItem('editPostData');
@@ -402,7 +452,6 @@
                     tagElement.appendChild(removeButton);
                     tagsContainer.appendChild(tagElement);
                 });
-
 
                 // Populate category
 
@@ -482,45 +531,8 @@
                     .catch(error => console.error('Error:', error));
             }
         });
-        // When the publish button is clicked, make sure the selected robots meta is saved
-        document.getElementById('publish').addEventListener('click', function () {
-            const robotsMeta = document.getElementById('robotsMeta').value;
-            document.getElementById('robotsMetaInput').value = robotsMeta;
-
-            // Proceed with the rest of the form submission logic
-            document.getElementById('blogForm').submit();
-        });
-
-        document.getElementById('publish').addEventListener('click', function () {
-            // Ensure the content from the editor is submitted
-            document.getElementById('content').value = quill.root.innerHTML;
-
-            // Submit the form
-            document.getElementById('blogForm').submit();
-        });
-
     </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const editPostData = localStorage.getItem('editPostData');
-            if (editPostData) {
-                const postData = JSON.parse(editPostData);
 
-                // Populate the timestamp field if editing
-                if (postData.timestamp) {
-                    const postDate = new Date(postData.timestamp);
-                    document.getElementById('timestampInput').value = postDate.toISOString().slice(0, 16);
-                }
-            } else {
-                // If creating a new post, default to the current date and time
-                const now = new Date().toISOString().slice(0, 16);
-                document.getElementById('timestampInput').value = now;
-            }
-        });
-
-
-
-    </script>
     <script>
         document.getElementById('postTitle').addEventListener('input', function () {
             let title = this.value;
@@ -555,13 +567,19 @@
 
         class CustomImageBlot extends ImageBlot {
             static create(value) {
-                let node = super.create(value.url || value);  // Ensure the value can handle both strings and objects
-                node.setAttribute('src', value.url || value); // Ensure the 'src' attribute is set correctly
+                let node = super.create(value.url || value);
+                node.setAttribute('src', value.url || value);
 
                 // Set alt text if provided
                 if (value.alt) {
                     node.setAttribute('alt', value.alt);
                 }
+
+                // Set title if provided
+                if (value.title) {
+                    node.setAttribute('title', value.title);
+                }
+
                 return node;
             }
 
@@ -569,12 +587,14 @@
                 return {
                     url: domNode.getAttribute('src'),
                     alt: domNode.getAttribute('alt'),
+                    title: domNode.getAttribute('title') || '', // Get title attribute
                 };
             }
 
             static formats(domNode) {
                 let formats = super.formats(domNode);
                 formats.alt = domNode.getAttribute('alt') || '';
+                formats.title = domNode.getAttribute('title') || '';
                 return formats;
             }
 
@@ -585,6 +605,12 @@
                     } else {
                         this.domNode.removeAttribute('alt');
                     }
+                } else if (name === 'title') {
+                    if (value) {
+                        this.domNode.setAttribute('title', value);
+                    } else {
+                        this.domNode.removeAttribute('title');
+                    }
                 } else {
                     super.format(name, value);
                 }
@@ -592,47 +618,73 @@
         }
 
         Quill.register(CustomImageBlot, true);
+
     </script>
 
     <script>
-        // When an image in the editor is clicked, show the modal to add alt text
+        // When an image in the editor is clicked, show the modal to add alt and title text
         document.querySelector('.ql-editor').addEventListener('click', function (e) {
             if (e.target.tagName === 'IMG') {
                 const img = e.target;
-                const altTextModal = document.getElementById('altTextModal');
+                const altTitleModal = document.getElementById('altTitleModal');
                 const altTextInput = document.getElementById('altTextInput');
-                const saveAltTextButton = document.getElementById('saveAltTextButton');
+                const titleTextInput = document.getElementById('titleTextInput');
+                const saveAltTitleButton = document.getElementById('saveAltTitleButton');
 
-                // Pre-fill the input with the current alt text
+                // Pre-fill the inputs with the current alt and title text
                 altTextInput.value = img.getAttribute('alt') || '';
+                titleTextInput.value = img.getAttribute('title') || '';
 
                 // Show the modal near the image
-                altTextModal.style.display = 'block';
-                altTextModal.style.top = e.clientY + 'px';
-                altTextModal.style.left = e.clientX + 'px';
+                altTitleModal.style.display = 'block';
+                altTitleModal.style.top = e.clientY + 'px';
+                altTitleModal.style.left = e.clientX + 'px';
 
-                // Prevent the default action when the "Save Alt Text" button is clicked
-                saveAltTextButton.onclick = function (e) {
-                    e.preventDefault(); // Prevent any default form submission or page reload
+                // Save the alt and title text when the "Save" button is clicked
+                saveAltTitleButton.onclick = function (e) {
+                    e.preventDefault();  // Prevent any default form submission or page reload
 
                     const altText = altTextInput.value;
-                    // Update the image alt text
+                    const titleText = titleTextInput.value;
+
+                    // Update the image alt and title attributes
                     img.setAttribute('alt', altText);
+                    img.setAttribute('title', titleText);
 
                     // Hide the modal
-                    altTextModal.style.display = 'none';
+                    altTitleModal.style.display = 'none';
                 };
             }
         });
 
         // Hide the modal if clicked outside
         document.addEventListener('click', function (e) {
-            const altTextModal = document.getElementById('altTextModal');
-            if (!altTextModal.contains(e.target) && !e.target.closest('.ql-editor img')) {
-                altTextModal.style.display = 'none';
+            const altTitleModal = document.getElementById('altTitleModal');
+            if (!altTitleModal.contains(e.target) && !e.target.closest('.ql-editor img')) {
+                altTitleModal.style.display = 'none';
             }
         });
 
+    </script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const editPostData = localStorage.getItem('editPostData');
+            if (editPostData) {
+                const postData = JSON.parse(editPostData);
+
+                // Populate the timestamp field if editing
+                if (postData.timestamp) {
+                    const postDate = new Date(postData.timestamp);
+                    document.getElementById('timestampInput').value = postDate.toISOString().slice(0, 16);
+                }
+            } else {
+                // If creating a new post, default to the current date and time
+                const now = new Date().toISOString().slice(0, 16);
+                document.getElementById('timestampInput').value = now;
+            }
+        });
     </script>
 
 </body>

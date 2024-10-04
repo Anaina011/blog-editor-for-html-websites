@@ -99,17 +99,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $geoPlacename = htmlspecialchars($_POST['geoPlacename']);
     $geoPosition = htmlspecialchars($_POST['geoPosition']);
     $ICBM = htmlspecialchars($_POST['ICBM']);
-
-// Check if a custom timestamp was provided
-if (!empty($_POST['timestamp'])) {
-    // Use the custom timestamp provided by the user
-    $publishDateTime = date('c', strtotime($_POST['timestamp']));
-    $formattedPublishDate = date('F j, Y', strtotime($_POST['timestamp'])); // Format for display
-} else {
-    // Use the current date and time as the default
-    $publishDateTime = date('c');
-    $formattedPublishDate = date('F j, Y'); // Default formatting
-}
+    // Check if a custom timestamp was provided
+    if (!empty($_POST['timestamp'])) {
+        // Use the custom timestamp provided by the user
+        $publishDateTime = date('c', strtotime($_POST['timestamp']));
+        $formattedPublishDate = date('F j, Y', strtotime($_POST['timestamp'])); // Format for display
+    } else {
+        // Use the current date and time as the default
+        $publishDateTime = date('c');
+        $formattedPublishDate = date('F j, Y'); // Default formatting
+    }
 
     // Extract the first line from the content
     $plainTextContent = strip_tags($content);
@@ -208,17 +207,38 @@ if (!empty($_POST['timestamp'])) {
     $CurrentDateTime = date('c');
     $featuredImageUrl = $rootPath . $featuredImage;
     $logoImageUrl = $rootPath . $publisherLogo;
+    // $formattedPublishDate = date('F j, Y');
     $blogHomeUrl = $domainName . $blogHome;
     $privacyPolicyUrl = $domainName . $privacyPolicy;
     $termsAndConditionUrl = $domainName . $termsAndCondition;
     $siteMapUrl = $domainName . $siteMap;
     $categoryLinks = '<a href="categories.html?category=' . urlencode($category) . '">' . htmlspecialchars($category) . '</a>';
     $structuredDataInput = isset($_POST['structuredData']) ? $_POST['structuredData'] : ''; // Check if the field is set
+
+    
+
+    // Read the existing tags.json file
+    $tagsFilePath = __DIR__ . "/tags.json";
+    $tagsData = file_exists($tagsFilePath) ? json_decode(file_get_contents($tagsFilePath), true) : ["hashtags" => []];
+
+    // Process each tag and update the tags.json structure
+    $tagsArray = explode(',', $tags);
+    
+    $formattedTagsForJson = array_map(function($tag) {
+        $tag = trim($tag);
+        if (strpos($tag, '#') !== 0) {
+            $tag = '#' . $tag;
+        }
+        return $tag;
+    }, $tagsArray);
+    $formattedTagsString = implode(',', $formattedTagsForJson);
+
+
     if (!empty($structuredDataInput)) {
         // If the structuredDataInput is not empty, use the user's input
         $structuredData = $structuredDataInput;
     } else {
-        $structuredData = '
+        $structuredDataTemplate = '
         <script type="application/ld+json">
             {
                 "@context": "https://schema.org",
@@ -234,11 +254,11 @@ if (!empty($_POST['timestamp'])) {
                             "@id": "$blogHomeUrl"
                         },
                         "headline": "$title",
-                        "datePublished": "$CurrentDateTime",
+                        "datePublished": "$publishDateTime",
                         "mainEntityOfPage": {
                             "@id": "$canonicalUrl/"
                         },
-                        "wordCount": ' . $wordCount . ',
+                        "wordCount": "$wordCount",
                         "commentCount": 0,
                         "publisher": {
                             "@id": "$blogHomeUrl"
@@ -270,7 +290,7 @@ if (!empty($_POST['timestamp'])) {
                             "@id": "$canonicalUrl/#primaryimage"
                         },
                         "thumbnailUrl": "$featuredImageUrl",
-                        "datePublished": "$CurrentDateTime",
+                        "datePublished": "$publishDateTime",
                         "description": "$metaDescription.",
                         "breadcrumb": {
                             "@id": "$canonicalUrl/#breadcrumb"
@@ -354,25 +374,17 @@ if (!empty($_POST['timestamp'])) {
             }
             </script>
         ';
+ 
+        
+        
+        // Replace the placeholders with actual PHP variables
+$structuredData = str_replace(
+    ['$wordCount', '$openGraphType', '$canonicalUrl', '$publisherName', '$blogHomeUrl', '$title', '$publishDateTime', '$featuredImageUrl', '$formattedTagsString', '$language', '$seoTitle', '$metaDescription', '$publisherTagline', '$logoImageUrl', '$facebookProfileLink', '$threadsProfileLink', '$instagramProfileLink', '$linkedinProfileLink'],
+    [$wordCount, $openGraphType, $canonicalUrl, $publisherName, $blogHomeUrl, $title, $publishDateTime, $featuredImageUrl, $formattedTagsString, $language, $seoTitle, $metaDescription, $publisherTagline, $logoImageUrl, $facebookProfileLink, $threadsProfileLink, $instagramProfileLink, $linkedinProfileLink],
+    $structuredDataTemplate
+);
+
     }
-
-
-    
-    // Read the existing tags.json file
-    $tagsFilePath = __DIR__ . "/tags.json";
-    $tagsData = file_exists($tagsFilePath) ? json_decode(file_get_contents($tagsFilePath), true) : ["hashtags" => []];
-
-    // Process each tag and update the tags.json structure
-    $tagsArray = explode(',', $tags);
-    
-    $formattedTagsForJson = array_map(function($tag) {
-        $tag = trim($tag);
-        if (strpos($tag, '#') !== 0) {
-            $tag = '#' . $tag;
-        }
-        return $tag;
-    }, $tagsArray);
-    $formattedTagsString = implode(',', $formattedTagsForJson);
 
     $postFileName = $slug . ".html"; // The name of the HTML file being created
     foreach ($tagsArray as $tag) {
